@@ -101,26 +101,15 @@
     if (nil!=view) {
         CGAffineTransform trans = _initTransformBG;
         CGFloat angleDest = angle;
+        
+        //使用CGAffineTransformMakeRotation获得一个旋转角度形变
+        //但是需要注意tranform的旋转不会自动在原来的角度上进行叠加，所以下面的方法旋转一次以后再点击按钮不会旋转了
+        //_imageView.transform=CGAffineTransformMakeRotation(angle);
+        //利用CGAffineTransformRotate在原来的基础上产生一个新的角度(当然也可以定义一个全局变量自己累加)
         view.transform = CGAffineTransformRotate(trans, angleDest);
         [view setNeedsDisplay];
         
     }
-    
-//        if (nil!=_backgroundView) {
-//            //使用CGAffineTransformMakeRotation获得一个旋转角度形变
-//            //但是需要注意tranform的旋转不会自动在原来的角度上进行叠加，所以下面的方法旋转一次以后再点击按钮不会旋转了
-//            //_imageView.transform=CGAffineTransformMakeRotation(angle);
-//            //利用CGAffineTransformRotate在原来的基础上产生一个新的角度(当然也可以定义一个全局变量自己累加)
-//            _backgroundView.transform=CGAffineTransformRotate(_initTransformBG, angle);
-//        }
-//    
-//        if (nil!=_scrollView) {
-//            //_scrollView.transform=CGAffineTransformRotate(_initTransformSC, angle);
-//        }
-//    
-//        if (nil!=_pageCtrl) {
-//            //_pageCtrl.transform=CGAffineTransformRotate(_initTransformPG, angle);
-//        }
 }
 
 - (void)deviceOrientationDidChange {
@@ -139,35 +128,7 @@
     CGPoint center = window.center ;
     CGRect rc = [UIScreen mainScreen].bounds ;
     
-//    center = CGPointMake(100, 150);
-//    rc = CGRectMake(0, 0, 200, 300);
-
-//    if (nil!=_backgroundView) {
-//        _backgroundView.center = center;
-//        _backgroundView.frame  = rc;
-//        _backgroundView.bounds = rc;
-//        [_backgroundView setNeedsDisplay];
-//        
-//        
-//        center = _backgroundView.center;
-//        rc     = _backgroundView.frame;
-//    }
-//    
-    
     if ( UIDeviceOrientationIsPortrait( deviceOrientation )) {//竖屏
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
-        CGPoint center = window.center ;
-        CGRect rc = [UIScreen mainScreen].bounds ;
-        
-        
-//        if (center.x - center.y > 0.0) { //保证竖屏时的坐标x <= y
-//            center = CGPointMake(center.y, center.x);
-//        }
-//        
-//        if (rc.size.width - rc.size.height > 0.0) { //保证竖屏时的长宽width <= height
-//            rc = CGRectMake(0, 0, rc.size.height, rc.size.width);
-//        }
-//        
         if (nil!=_backgroundView) {
             _backgroundView.center = center;
             _backgroundView.frame  = rc;
@@ -179,19 +140,6 @@
     }
     
     if (UIDeviceOrientationIsLandscape( deviceOrientation )) {//横向
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
-        CGPoint center = window.center ;
-        CGRect rc = [UIScreen mainScreen].bounds ;
-        
-        
-//        if (center.x - center.y < 0.0) { //保证横向时的坐标x >= y
-//            center = CGPointMake(center.y, center.x);
-//        }
-//        
-//        if (rc.size.width - rc.size.height < 0.0) { //保证横向时的长宽width >= height
-//            rc = CGRectMake(0, 0, rc.size.height, rc.size.width);
-//        }
-//        
         if (nil!=_backgroundView) {
             _backgroundView.center = center;			
             _backgroundView.frame  = rc;
@@ -225,7 +173,7 @@
             [_scrollView setCenter:center];
             //[_scrollView setBounds:rc];
             [_scrollView setFrame:rc];
-            //_scrollView.contentOffset = CGPointMake(0, 0);
+            _scrollView.contentOffset = CGPointMake(0, 0);
             //_scrollView.contentSize = CGSizeMake((rc.size.width) * (_pathArray.count), rc.size.height);
             _scrollView.contentSize = CGSizeMake((_scrollView.frame.size.width)*(_pathArray.count), _scrollView.frame.size.height);
             [_scrollView setNeedsDisplay];
@@ -234,16 +182,10 @@
                 
                 NSInteger page = 0 ;
                 for (page=0; page<[_pathArray count]; ++page) {
-                    //[self resizeScrollViewPage:index]; //重设每个子页的大小
-                    
                     NSInteger tag = BASE_TAG + page;
-                    
                     UIImageView *pageView = (UIImageView*)[_scrollView viewWithTag:tag];
                     
                     if (pageView != nil){
-                        //pageView.frame = [self imageViewFrame:page]; //每次都重读区域，防止设备旋转后区域不正确。
-                        
-                        //CGRect rc = _scrollView.frame ;
                         CGFloat pageWidth = CGRectGetWidth(rc);
                         CGFloat pageHeight = CGRectGetHeight(rc);
                         CGRect frame = CGRectMake(pageWidth * page, 0, pageWidth, pageHeight);
@@ -256,7 +198,6 @@
                 
                 [_pageCtrl setNeedsDisplay];
                 [_scrollView setNeedsDisplay];
-                //[_scrollView setNeedsLayout];
                 [_backgroundView setNeedsDisplay];
                 
                 NSInteger pageCurrent = _pageCtrl.currentPage ;
