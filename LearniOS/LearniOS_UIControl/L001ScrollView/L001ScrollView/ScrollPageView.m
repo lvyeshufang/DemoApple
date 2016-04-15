@@ -20,6 +20,7 @@
 @property (nonatomic, strong) UIPageControl *pageCtrl;
 @property (nonatomic, strong) NSMutableArray *pathArray;
 @property (nonatomic,readwrite) CGAffineTransform initTransformBG;
+@property (nonatomic,readwrite) CGSize sizeDevice;//设备大小
 
 @end
 
@@ -48,16 +49,15 @@
     _pathArray = pathArray;
     
     [window addSubview:self.backgroundView];
-    //[self addSubview:self.backgroundView];
     
     [self changePageView:index];
     
     _pageCtrl.currentPage = index;
-    [_scrollView scrollRectToVisible:CGRectMake((_scrollView.bounds.size.width)*index,
-                                                0,
-                                                _scrollView.bounds.size.width,
-                                                _scrollView.bounds.size.height)
-                            animated:NO];
+    
+    CGRect rc = _scrollView.bounds;
+    rc = CGRectMake(0, 0, 200, 300);
+    
+    [_scrollView scrollRectToVisible:CGRectMake((rc.size.width)*index, 0, rc.size.width, rc.size.height) animated:NO];
     
     _initTransformBG = window.transform;
 }
@@ -122,61 +122,105 @@
         return;
     }
     
+    
     [self rotateWindowWithOrientation:deviceOrientation];//旋转容器窗口
+    
     
     UIWindow *window = [UIApplication sharedApplication].keyWindow;
     CGPoint center = window.center ;
     CGRect rc = [UIScreen mainScreen].bounds ;
     
-    if ( UIDeviceOrientationIsPortrait( deviceOrientation )) {//竖屏
-        if (nil!=_backgroundView) {
-            _backgroundView.center = center;
-            _backgroundView.frame  = rc;
-            _backgroundView.bounds = rc;
-            [_backgroundView setNeedsDisplay];
-        }
-        
-        [self updateViewWithinRect:rc atCenter:center];
-    }
+//    CGRect rc2 = _backgroundView.frame;
+//    
+//    CGFloat sx = (rc.size.width)/(rc2.size.width);
+//    CGFloat sy = (rc.size.height)/(rc2.size.height);
+//    CGAffineTransform trans = _backgroundView.transform;//_initTransformBG;
+//    _backgroundView.transform = CGAffineTransformScale(trans, sy, sx);
+//    [_backgroundView setNeedsDisplay];
     
-    if (UIDeviceOrientationIsLandscape( deviceOrientation )) {//横向
+//    if ( UIDeviceOrientationIsPortrait( deviceOrientation )) {//竖屏
         if (nil!=_backgroundView) {
-            _backgroundView.center = center;			
-            _backgroundView.frame  = rc;
-            _backgroundView.bounds = rc;
-            [_backgroundView setNeedsDisplay];
+//            _backgroundView.center = center;
+//            _backgroundView.frame  = rc;
+//            _backgroundView.bounds = rc;
+//            [_backgroundView setNeedsDisplay];
+            
+            //center = _backgroundView.center;
+            //rc     = _backgroundView.frame ;
         }
-        [self updateViewWithinRect:rc atCenter:center];
-    }
-}
-
-- (void)layoutSubviews{
-    NSLog(@"called layoutSubviews");
-    [super layoutSubviews];
     
-}
-
-- (void)setNeedsDisplay{
-    NSLog(@"called setNeedsLayout");
-
-    [super setNeedsLayout];
+        [self updateViewWithinRect:rc atCenter:center];
+//    }
+//    
+//    if (UIDeviceOrientationIsLandscape( deviceOrientation )) {//横向
+//        if (nil!=_backgroundView) {
+//            _backgroundView.center = center;			
+//            _backgroundView.frame  = rc;
+//            _backgroundView.bounds = rc;
+//            [_backgroundView setNeedsDisplay];
+//        }
+//        [self updateViewWithinRect:rc atCenter:center];
+//    }
+    
+    NSUInteger curpage = self.pageCtrl.currentPage;
+    //[self changePageView:curpage];
+    
 }
 
 - (void)updateViewWithinRect:(CGRect)rc atCenter:(CGPoint)center {
+    NSString* s1 = [NSString stringWithFormat:@"\nInput-rc:%@,center:%@", NSStringFromCGRect(rc), NSStringFromCGPoint(center) ];
+    
     if (nil!=_backgroundView) {
+        CGRect rc1 = _backgroundView.frame;
+        rc1.size.width = rc.size.width;
+        rc1.size.height = rc.size.height;
         [_backgroundView setCenter:center];
-        [_backgroundView setBounds:CGRectMake(0, 0, rc.size.width, rc.size.height)];
+        //[_backgroundView setBounds:CGRectMake(0, 0, rc.size.width, rc.size.height)];
         [_backgroundView setFrame:rc];
         [_backgroundView setNeedsDisplay];
         
+        NSString* s2 = [NSString stringWithFormat:@"View1-bounds:%@, frame:%@, center:%@",
+                        NSStringFromCGRect(_backgroundView.bounds),
+                        NSStringFromCGRect(_backgroundView.frame),
+                        NSStringFromCGPoint(_backgroundView.center)];
+        
         if (nil!=_scrollView) {
+            CGRect rc2 = _scrollView.bounds;
+            //rc = CGRectMake(0, 0, 200, 300);
+            center = _backgroundView.center;
+            
+            if ( UIDeviceOrientationIsPortrait( UIDevice.currentDevice.orientation )) {//竖屏
+                center = _backgroundView.center;
+                rc2 = _backgroundView.frame ;
+                rc2 = CGRectMake(0, 0, 200, 300);
+                rc2 = CGRectMake(0, 0, _backgroundView.frame.size.width-6, _backgroundView.frame.size.height-6);
+                
+            }
+            
+            if (UIDeviceOrientationIsLandscape( UIDevice.currentDevice.orientation )) {//横向
+                center = CGPointMake(_backgroundView.center.y, _backgroundView.center.x);
+                rc2 = _backgroundView.frame ;
+                rc2 = CGRectMake(0, 0, 300, 200);
+                rc2 = CGRectMake(0, 0, _backgroundView.frame.size.height-6, _backgroundView.frame.size.width-6);
+            }
+            
+            
+            
+            [_scrollView setFrame:rc2];
             [_scrollView setCenter:center];
             //[_scrollView setBounds:rc];
-            [_scrollView setFrame:rc];
-            _scrollView.contentOffset = CGPointMake(0, 0);
+            
+            //rc = _scrollView.frame ;
+            //_scrollView.contentOffset = CGPointMake(rc1.origin.x, rc1.origin.y);
             //_scrollView.contentSize = CGSizeMake((rc.size.width) * (_pathArray.count), rc.size.height);
-            _scrollView.contentSize = CGSizeMake((_scrollView.frame.size.width)*(_pathArray.count), _scrollView.frame.size.height);
+            //_scrollView.contentSize = CGSizeMake((rc.size.width)*(_pathArray.count), rc.size.height);
+            _scrollView.contentSize = CGSizeMake((rc2.size.width)*(_pathArray.count), rc2.size.height);
             [_scrollView setNeedsDisplay];
+            
+            NSString* s3 = [NSString stringWithFormat:@"View2-bounds:%@, frame:%@, center:%@",
+                            NSStringFromCGRect(_scrollView.bounds),
+                            NSStringFromCGRect(_scrollView.frame),
+                            NSStringFromCGPoint(_scrollView.center)];
             
             if (nil!=_pageCtrl) {
                 
@@ -186,14 +230,14 @@
                     UIImageView *pageView = (UIImageView*)[_scrollView viewWithTag:tag];
                     
                     if (pageView != nil){
-                        CGFloat pageWidth = CGRectGetWidth(rc);
-                        CGFloat pageHeight = CGRectGetHeight(rc);
+                        CGFloat pageWidth = CGRectGetWidth(rc2);
+                        CGFloat pageHeight = CGRectGetHeight(rc2);
                         CGRect frame = CGRectMake(pageWidth * page, 0, pageWidth, pageHeight);
                         pageView.frame = frame ;
                     }
                 }
                 
-                center.y = rc.size.height - _pageCtrl.bounds.size.height ;
+                center.y = rc2.size.height - _pageCtrl.frame.size.height ;
                 [_pageCtrl setCenter:center];
                 
                 [_pageCtrl setNeedsDisplay];
@@ -201,8 +245,20 @@
                 [_backgroundView setNeedsDisplay];
                 
                 NSInteger pageCurrent = _pageCtrl.currentPage ;
+                
+                rc = _scrollView.frame;
                 [_scrollView scrollRectToVisible:CGRectMake((rc.size.width)*pageCurrent, 0, rc.size.width, rc.size.height) animated:NO];
+                
+                
+                NSString* s4 = [NSString stringWithFormat:@"View3-bounds:%@, frame:%@, center:%@",
+                                NSStringFromCGRect(_pageCtrl.bounds),
+                                NSStringFromCGRect(_pageCtrl.frame),
+                                NSStringFromCGPoint(_pageCtrl.center)];
+                
+            
+                NSLog(@"\n%@\n%@\n%@\n%@",s1,s2,s3,s4);
             }
+            
         }
         [self setNeedsLayout];
     }
@@ -215,7 +271,7 @@
     if (_backgroundView == nil) {
         CGRect rc = [UIScreen mainScreen].bounds ;
         //center = CGPointMake(100, 150);
-        //rc = CGRectMake(0, 0, 200, 300);
+        rc = CGRectMake(0, 0, 200, 300);
         
         _backgroundView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, rc.size.width, rc.size.height)];
         _backgroundView.backgroundColor = [UIColor blackColor];
@@ -236,9 +292,13 @@
 - (UIScrollView *)scrollView {
     if (_scrollView == nil) {
         //center = CGPointMake(100, 150);
-        //rc = CGRectMake(0, 0, 200, 300);
-        _scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, _backgroundView.bounds.size.width, _backgroundView.bounds.size.height)];
-        _scrollView.contentSize = CGSizeMake((_scrollView.bounds.size.width) * (_pathArray.count), _backgroundView.bounds.size.height);
+        CGRect rc1 = CGRectMake(0, 0, 200, 300);
+        rc1 = _backgroundView.bounds;
+        
+        _scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, rc1.size.width, rc1.size.height)];
+        
+        CGRect rc2=_scrollView.bounds;
+        _scrollView.contentSize = CGSizeMake((rc2.size.width) * (_pathArray.count), rc1.size.height);
         _scrollView.pagingEnabled = YES;
         _scrollView.showsHorizontalScrollIndicator = YES;
         _scrollView.showsVerticalScrollIndicator = NO;
@@ -251,7 +311,10 @@
 
 - (UIPageControl *)pageCtrl {
     if (_pageCtrl == nil) {
-        _pageCtrl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, _backgroundView.bounds.size.height - 25, _backgroundView.bounds.size.width, 25)];
+        CGRect rc1 = CGRectMake(0, 0, 200, 300);
+        rc1 = _backgroundView.bounds;
+        
+        _pageCtrl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, rc1.size.height - 25, rc1.size.width, 25)];
         _pageCtrl.backgroundColor = [UIColor clearColor];
         _pageCtrl.pageIndicatorTintColor = [UIColor grayColor];
         _pageCtrl.hidesForSinglePage = YES;
@@ -307,7 +370,16 @@
     UIImageView *pageView = (UIImageView*)[_scrollView viewWithTag:tag];
     
     if (pageView != nil){
-        pageView.frame = [self imageViewFrame:page]; //每次都重读区域，防止设备旋转后区域不正确。
+        //pageView.frame = [self imageViewFrame:page]; //每次都重读区域，防止设备旋转后区域不正确。
+        
+        
+        CGRect rc = _scrollView.frame ;
+        //rc = CGRectMake(0, 0, 200, 300);
+        CGFloat pageWidth = CGRectGetWidth(rc);
+        CGFloat pageHeight = CGRectGetHeight(rc);
+        CGRect frame = CGRectMake(pageWidth * page, 0, pageWidth, pageHeight);
+        pageView.frame = frame;
+        
         return YES;
     }
     else{
@@ -333,38 +405,28 @@
     NSString *mediaPath = [_pathArray objectAtIndex:page];
     // local image
     UIImage *image  = [CommonUtils getLocalImage:mediaPath];
-    [_scrollView addSubview:[self imageView:page image:image]];
-}
-
-- (UIImageView *)imageView:(NSInteger)index image:(UIImage *)image {
+    //[_scrollView addSubview:[self imageView:page image:image]];
+    
     CGRect frame = _scrollView.frame;
     if(image != nil) {
-        frame = [self imageViewFrame:index withImageSize:image.size];
+        frame = [self imageViewFrame:page withImageSize:image.size];
     }
     
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
     imageView.contentMode = UIViewContentModeScaleAspectFit; // UIImageView适应图片尺寸
     [imageView setImage:image];
-    imageView.tag = BASE_TAG + index;
+    imageView.tag = BASE_TAG + page;
     
-    return imageView;
+    [_scrollView addSubview:imageView];
 }
-
-- (CGRect)imageViewFrame:(NSInteger)index {
-    CGRect rc = _scrollView.frame ;
-    CGFloat pageWidth = CGRectGetWidth(rc);
-    CGFloat pageHeight = CGRectGetHeight(rc);
-    CGRect frame = CGRectMake(pageWidth * index, 0, pageWidth, pageHeight);
-    return frame;
-}
-
 
 - (CGRect)imageViewFrame:(NSInteger)index withImageSize:(CGSize)imageSize {
-    
+    CGRect rc = _scrollView.frame ;
+    //rc = CGRectMake(0, 0, 200, 300);
     CGFloat showImgWidth = imageSize.width;
     CGFloat showImgHeight = imageSize.height;
-    CGFloat pageWidth = CGRectGetWidth(_scrollView.frame);
-    CGFloat pageHeight = CGRectGetHeight(_scrollView.frame);
+    CGFloat pageWidth = CGRectGetWidth(rc);
+    CGFloat pageHeight = CGRectGetHeight(rc);
     
     CGRect frame;
     if ((showImgWidth / showImgHeight) > (pageWidth / pageHeight)) {
@@ -389,11 +451,22 @@
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     if (scrollView == _scrollView) {
-        CGFloat pageWidth = CGRectGetWidth(scrollView.frame);
-        NSInteger curpage = fabs(scrollView.contentOffset.x) / pageWidth;
+        CGRect rc = _scrollView.frame ;
+        //rc = CGRectMake(0, 0, 200, 300);
+        
+        CGFloat pageWidth = CGRectGetWidth(rc);
+        CGFloat pageLeft  = fabs(scrollView.contentOffset.x) ;
+        NSInteger curpage = pageLeft / (pageWidth-0.1);//0.1防止浮点数精度造成误差
+        
+        NSLog(@"PageIndex:%ld, Left:%f, Width:%f",curpage,pageLeft,pageWidth);
         
         NSLog(@"scrollViewDidEndDecelerating, Current Page: %ld", (long)curpage);
         _pageCtrl.currentPage = curpage;
+        NSString* s3 = [NSString stringWithFormat:@"UIScrollView-bounds:%@, frame:%@, center:%@",
+                        NSStringFromCGRect(_scrollView.bounds),
+                        NSStringFromCGRect(_scrollView.frame),
+                        NSStringFromCGPoint(_scrollView.center)];
+        NSLog(s3);
         
         [self changePageView:curpage];
     }

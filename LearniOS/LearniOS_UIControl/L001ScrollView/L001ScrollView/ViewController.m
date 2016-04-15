@@ -158,13 +158,7 @@
             if (_imageArr == nil) {
                 _imageArr = [[NSMutableArray alloc] initWithCapacity:0];
             }
-            
-            //    [_imageArr addObject:@"http://192.168.1.102:8080/shell/IMG_0044.m4v"];
-            //    [_imageArr addObject:@"http://img2.niutuku.com/desk/1208/1431/ntk-1431-8153.jpg"];
-            //    [_imageArr addObject:@"http://pic29.nipic.com/20130515/12667289_101713416109_2.jpg"];
-            //    [_imageArr addObject:@"http://img.taopic.com/uploads/allimg/131109/234802-13110911263389.jpg"];
-            
-            //[[NSBundle mainBundle] pathForResource:@"1" ofType:@"jpg"];
+        
             [_imageArr addObject:[[NSBundle mainBundle] pathForResource:@"1" ofType:@"jpg"]];
             [_imageArr addObject:[[NSBundle mainBundle] pathForResource:@"2" ofType:@"jpg"]];
             [_imageArr addObject:[[NSBundle mainBundle] pathForResource:@"3" ofType:@"jpg"]];
@@ -218,13 +212,21 @@
 - (void)btnSpageZoomClicked:(id)sender{
     UIView* view = [self findViewWithinWindowByTag:102];
     if (nil!=view) {
-        CGRect frame = view.frame;
-        frame.size.width *=1.1;
-        frame.size.height *=1.1;
-        view.frame = frame;
-        //view.bounds = frame ;
+//        CGRect frame = view.frame;
+//        frame.size.width *=1.1;
+//        frame.size.height *=1.1;
+//        view.frame = frame;
+//        //view.bounds = frame ;
+//        
+//        //[view setNeedsDisplay];
+//        //[view setNeedsLayout];
+//        
+//        ScrollPageView* pageView = view;
+//        [pageView setNeedsDisplay];
+//        [pageView setNeedsLayout];
+        CGAffineTransform trans = view.transform;
+        view.transform = CGAffineTransformScale(trans, 1.1, 1.1);
         [view setNeedsDisplay];
-        [view setNeedsLayout];
     }
 }
 
